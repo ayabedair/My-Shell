@@ -1,5 +1,5 @@
 #include "program.h"
-#include "Redirection/redirection.h"
+#include "../Redirection/redirection.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,14 +9,15 @@
 #include <string.h>
 #include <limits.h>
 
-#include "myCommands/mycat.h"
-#include "myCommands/myecho.h"
-#include "myCommands/mymv.h"
-#include "myCommands/myrm.h"
-#include "myCommands/mycp.h"
-#include "myCommands/mypwd.h"
-#include "myCommands/mycd.h"
-#include "myCommands/mygrep.h"
+#include "../myCommands/mycat.h"
+#include "../myCommands/myecho.h"
+#include "../myCommands/mymv.h"
+#include "../myCommands/myrm.h"
+#include "../myCommands/mycp.h"
+#include "../myCommands/mypwd.h"
+#include "../myCommands/mycd.h"
+#include "../myCommands/mygrep.h"
+#include "../myCommands/myenv.h"
 
 #define MAX_CMD_SIZE  1024
 #define BOLD_MAGENTA   "\x1b[35m\x1b[1m"
@@ -52,7 +53,7 @@ void printPrompt() {
 void readCommand(char *cmd, int size) {
 	if (fgets(cmd, size, stdin) == NULL) {
             perror("fgets error");
-            return;  // Continue loop instead of exit on error
+            return; 
         }
 
         // Remove newline from input
@@ -114,18 +115,13 @@ void parseCommand(char *cmd, char **args, char **inFile, char **outFile, char **
             }
         } else if (strcmp(token, "2>>") == 0) {
             // Standard error redirection (append)
-            *errRedirect = 1;
+	    *errRedirect = 1;
             *append = 1;
             token = strtok(NULL, " \n");
             if (token != NULL) {
                 *errFile = token;
             }
-        } else if (strcmp(token, "<<") == 0) {
-            // Here-document redirection (not handled in this example)
-            // You can extend this part to handle heredoc if needed.
-            printf("Here-document redirection detected but not handled.\n");
         } else {
-            // Normal argument
             args[i++] = token;
         }
         token = strtok(NULL, " \n");
@@ -160,7 +156,9 @@ void runCommand(int argc, char **args, char *inFile, char *outFile, char *errFil
             		runMymv(argc, args);
         	} else if (strcmp(args[0], "mygrep") == 0) {
 			runMygrep(argc, args);
-		} else {
+		} else if (strcmp(args[0], "myenv") == 0) {
+                        runMyenv(argc, args);
+                }else {
 			execvp(args[0], args);
 	                printf("execvp error");
         	        exit(EXIT_FAILURE);

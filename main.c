@@ -12,8 +12,10 @@
 #include "myCommands/mypwd.h"
 #include "myCommands/mycd.h"
 #include "myCommands/mygrep.h"
+#include "myCommands/myenv.h"
 #include "Redirection/redirection.h"
-#include "program.h"
+#include "Piping/piping.h"
+#include "Program/program.h"
 #include <limits.h>
 
 #define MAX_CMD_SIZE  1024
@@ -24,7 +26,7 @@ int main() {
     char *args[MAX_ARG_SIZE];
     int status;
     char *inFile, *outFile, *errFile;
-    int append, inRedirect, outRedirect, errRedirect;
+    int append, inRedirect, outRedirect, errRedirect, piping_flag;
     while (1) {
  	printPrompt();       
 
@@ -35,13 +37,19 @@ int main() {
             continue;
         }
 
+	// Check for piping
+	piping_flag = hasPiping(cmd);
+        if(piping_flag) {
+		char *cmd1_args[MAX_CMD_SIZE], *cmd2_args[MAX_CMD_SIZE];
+        	handlePiping(cmd, cmd1_args, cmd2_args);
+	}else{
         // Parse the input command
         parseCommand(cmd, args, &inFile, &outFile, &errFile, &append, &inRedirect, &outRedirect, &errRedirect);
-
         // Count the number of arguments
         int argc = countArgs(args);
-
+	// Execute command
         runCommand(argc, args, inFile, outFile, errFile, append, inRedirect, outRedirect, errRedirect);
-    }
+	}
+   }
     return 0;
 }
